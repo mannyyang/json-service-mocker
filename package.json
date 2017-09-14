@@ -1,0 +1,47 @@
+{
+  "name": "json-service-mocker",
+  "version": "1.0.0",
+  "description": "A client-side XHR mocker specifically for mocking JSON data from an API. It replaces the global XMLHttpRequest with MockXMLHttpRequest.",
+  "main": "index.js",
+  "scripts": {
+    "test": "karma start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mannyyang/json-service-mocker.git"
+  },
+  "keywords": [
+    "json",
+    "service",
+    "mocker",
+    "client-side",
+    "XHR",
+    "XMLHTTPRequest",
+    "API",
+    "javascript"
+  ],
+  "author": "manuel yang <me@manuelyang.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mannyyang/json-service-mocker/issues"
+  },
+  "homepage": "https://github.com/mannyyang/json-service-mocker#readme",
+  "dependencies": {
+    "xhr-mock": "^1.9.1"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^2.5.54",
+    "@types/node": "7.0.8",
+    "@types/object-assign": "4.0.30",
+    "@types/react": "15.0.21",
+    "@types/react-dom": "0.14.23",
+    "jasmine-core": "^2.8.0",
+    "karma": "1.5.0",
+    "karma-chrome-launcher": "2.0.0",
+    "karma-jasmine": "^1.1.0",
+    "karma-typescript": "^3.0.5",
+    "qwest": "4.4.5",
+    "tslint": "^5.7.0",
+    "typescript": "2.2.2"
+  }
+}

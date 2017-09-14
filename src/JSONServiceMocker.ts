@@ -18,20 +18,16 @@ export class JSONServiceMocker {
             'Content-Type': 'application/json'
         };
 
-        // if (XMLHttpRequest.name !== 'MockXMLHttpRequest') {
-        //     debugger
-        //     mock.setup();
-        // }
-
         mock.setup();
 
         services.forEach((serviceMock: IMockService) => {
             mock.mock(serviceMock.method, serviceMock.path, (req: any, res: any) => {
+                // init response object
                 let response: any = res.status(serviceMock.status);
 
-                response = serviceMock.hasOwnProperty('timeout')
-                    ? response.timeout(serviceMock.timeout || false)
-                    : response;
+                // response = serviceMock.hasOwnProperty('timeout')
+                //     ? response.timeout(serviceMock.timeout || false)
+                //     : response;
                 response = serviceMock.hasOwnProperty('header')
                     ? response.headers((<any>Object).assign({}, this.defaultResHeaders, serviceMock.header || {}))
                     : response;

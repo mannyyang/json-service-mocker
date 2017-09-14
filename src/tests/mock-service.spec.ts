@@ -1,74 +1,232 @@
-import { JSONServiceMocker } from '../JSONServiceMocker';
 import * as qwest from 'qwest';
+import { JSONServiceMocker } from '../JSONServiceMocker';
 
-const serviceMocks = function () {
-    let state = [];
+const serviceMocks: any = function (): any[] {
+    let state: any[] = [];
 
     return [
         {
-            "method": "GET",
-            "path": "/get/state",
-            "status": 200,
-            "body": function() {
-                state.push(1);
+            'method': 'GET',
+            'path': '/get/json',
+            'status': 200,
+            'body': {
+                'item': {
+                    'name': 'me',
+                    'age': 2
+                },
+                'secondItem': {
+                    'name': 'me'
+                }
+            },
+            'timeout': '',
+            'header': ''
+        },
+        {
+            'method': 'GET',
+            'path': '/get/function',
+            'status': 200,
+            'body': function (): any {
                 return state;
             },
-            "timeout": "",
-            "header": ""
+            'timeout': '',
+            'header': ''
         },
         {
-            "method": "GET",
-            "path": "/test",
-            "status": 200,
-            "body": {
-                "test": "test"
-            },
-            "timeout": "",
-            "header": ""
-        },
-        {
-            "method": "POST",
-            "path": "/test",
-            "status": 200,
-            "body": function(req) {
-                let body = req._body;
+            'method': 'GET',
+            'path': '/get/function/add',
+            'status': 200,
+            'body': function (): any {
+                state.push(1);
 
-                debugger;
+                return state;
             },
-            "timeout": "",
-            "header": ""
+            'timeout': '',
+            'header': ''
+        },
+        {
+            'method': 'GET',
+            'path': '/test',
+            'status': 200,
+            'body': {
+                'test': 'test'
+            },
+            'timeout': '',
+            'header': ''
+        },
+        {
+            'method': 'POST',
+            'path': '/post/reqbody',
+            'status': 200,
+            'body': function (req: any): any {
+                return JSON.parse(req.body());
+            },
+            'timeout': '',
+            'header': ''
         }
     ];
-}
+};
 
-const headers = { 'Accept': 'application/json' };
-const options = {
-    dataType: 'json',
+const serviceMocks2: any = function (): any[] {
+    let state: any[] = [];
+
+    return [
+        {
+            'method': 'GET',
+            'path': '/get2/json',
+            'status': 200,
+            'body': {
+                'item': {
+                    'name': 'me',
+                    'age': 2
+                },
+                'secondItem': {
+                    'name': 'me'
+                }
+            },
+            'timeout': '',
+            'header': ''
+        },
+        {
+            'method': 'GET',
+            'path': '/get2/function',
+            'status': 200,
+            'body': function (): any {
+                return state;
+            },
+            'timeout': '',
+            'header': ''
+        },
+        {
+            'method': 'GET',
+            'path': '/get2/function/add',
+            'status': 200,
+            'body': function (): any {
+                state.push(1);
+
+                return state;
+            },
+            'timeout': '',
+            'header': ''
+        },
+        {
+            'method': 'POST',
+            'path': '/post2/reqbody',
+            'status': 200,
+            'body': function (req: any): any {
+                return JSON.parse(req.body());
+            },
+            'timeout': '',
+            'header': ''
+        }
+    ];
+};
+
+const headers: any = { 'Accept': 'application/json' };
+const options: any = {
+    dataType: 'json'
     // responseType: 'json'
     // headers: headers
+};
+
+function responseParser(res: any): JSON {
+    return JSON.parse(res.response);
 }
 
 describe('Test Mocking Service', () => {
-    it('should work', () => {
-        let mockJS = new JSONServiceMocker(serviceMocks());
-        // let mockJS2 = new JSONServiceMocker(serviceMocks2());
 
-        qwest.get('/locales', null, options).then(data => {
-            console.log('/locales', data);
-        });
-
-        // qwest.get('/new', null, options).then(data => {
-        //     console.log('/new', data);
-        // });
-
-        // qwest.post('/test',
-        //     JSON.stringify({ 'isTHis': 'beingPassed', 'one': 1, "obj": { "nested": "nestedvalue" } }),
-        //     options
-        // )
-        //     .then(data => {
-        //         console.log(data);
-        //     });
-
-        expect(true).toBe(true);
+    beforeAll(() => {
+        const mockJS: any = new JSONServiceMocker(serviceMocks().concat(serviceMocks2()));
     });
+
+    it('should fetch a mocked url with a json object set in the body', (done: any) => {
+        qwest.get('/get/json', null, options).then((res: any) => {
+            const expected: any = {
+                'item': {
+                    'name': 'me',
+                    'age': 2
+                },
+                'secondItem': {
+                    'name': 'me'
+                }
+            };
+
+            expect(responseParser(res)).toEqual(expected);
+            done();
+        });
+    });
+
+    it('should fetch a mocked url with an object generated from a function', (done: any) => {
+        qwest.get('/get/function', null, options).then((res: any) => {
+            const emptyArray: any = [];
+            expect(responseParser(res)).toEqual(emptyArray);
+            done();
+        });
+    });
+
+    it('should execute function each time service is called', (done: any) => {
+        qwest.get('/get/function/add', null, options).then((res: any) => {
+            const emptyArray: any = [1];
+            expect(responseParser(res)).toEqual(emptyArray);
+
+            return qwest.get('/get/function/add', null, options);
+        })
+            .then((res: any) => {
+                const secondFilled: any = [1, 1];
+                expect(responseParser(res)).toEqual(secondFilled);
+                done();
+            });
+    });
+
+    it('should contain the right request body', (done: any) => {
+        const reqBody: any = {
+            'isTHis': 'beingPassed',
+            'one': 1,
+            'obj': {
+                'nested': 'nestedvalue'
+            }
+        };
+
+        qwest.post('/post/reqbody', reqBody, options)
+            .then((res: any) => {
+                const body: any = responseParser(res);
+                expect(body).toEqual(reqBody);
+                done();
+            });
+    });
+
+    it('should keep the correct references', (done: any) => {
+        qwest.get('/get2/json', null, options).then((res: any) => {
+            const expected: any = {
+                'item': {
+                    'name': 'me',
+                    'age': 2
+                },
+                'secondItem': {
+                    'name': 'me'
+                }
+            };
+
+            expect(responseParser(res)).toEqual(expected);
+
+            return qwest.get('/get2/function', null, options);
+        }).
+            then((res: any) => {
+                const emptyArray: any = [];
+                expect(responseParser(res)).toEqual(emptyArray);
+
+                return qwest.get('/get2/function/add', null, options);
+            })
+            .then((res: any) => {
+                const emptyArray: any = [1];
+                expect(responseParser(res)).toEqual(emptyArray);
+
+                return qwest.get('/get2/function/add', null, options);
+            })
+            .then((res: any) => {
+                const secondFilled: any = [1, 1];
+                expect(responseParser(res)).toEqual(secondFilled);
+                done();
+            });
+    });
+
 });

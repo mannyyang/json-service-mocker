@@ -118,7 +118,7 @@
         "mocha-unneeded-done": true,
         "new-parens": true,
         "no-construct": true,
-        "no-default-export": true,
+        "no-default-export": false,
         "no-empty-interface": true,
         "no-for-in": true,
         "no-function-expression": true,

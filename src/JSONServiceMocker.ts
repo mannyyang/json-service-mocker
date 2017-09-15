@@ -12,32 +12,37 @@ export interface IMockService {
 export class JSONServiceMocker {
     public defaultResHeaders: {};
 
-    constructor(services: IMockService[]) {
+    constructor() {
         this.defaultResHeaders = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         };
 
+        mock.default = mock;
         mock.setup();
 
+        // override original function so that it doesn't throw an error
+        mock.XMLHttpRequest.prototype.overrideMimeType = function (mime: any) : any {
+            // not implemented yet.
+        };
+    }
+
+    public init(services: IMockService[]): void {
         services.forEach((serviceMock: IMockService) => {
             mock.mock(serviceMock.method, serviceMock.path, (req: any, res: any) => {
                 // init response object
                 let response: any = res.status(serviceMock.status);
 
-                // response = serviceMock.hasOwnProperty('timeout')
-                //     ? response.timeout(serviceMock.timeout || false)
-                //     : response;
                 response = serviceMock.hasOwnProperty('header')
                     ? response.headers((<any>Object).assign({}, this.defaultResHeaders, serviceMock.header || {}))
                     : response;
 
                 switch (typeof serviceMock.body) {
                     case 'function':
-                        response = response.body(JSON.stringify(serviceMock.body(req)));
+                        response = response.body(serviceMock.body(req));
                         break;
                     case 'object':
-                        response = response.body(JSON.stringify(serviceMock.body));
+                        response = response.body(serviceMock.body);
                         break;
                     default:
                         break;
@@ -49,12 +54,10 @@ export class JSONServiceMocker {
     }
 
     public enable(): void {
-        let b: number = 2;
-        b++;
+        mock.setup();
     }
 
     public disable(): void {
-        let a: number = 1;
-        a++;
+        mock.teardown();
     }
 }

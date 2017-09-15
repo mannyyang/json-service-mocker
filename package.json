@@ -1,10 +1,12 @@
 {
   "name": "json-service-mocker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A client-side XHR mocker specifically for mocking JSON data from an API. It replaces the global XMLHttpRequest with MockXMLHttpRequest.",
-  "main": "index.js",
+  "main": "dist/JSONServiceMocker.js",
+  "typings": "dist/JSONServiceMocker.d.ts",
   "scripts": {
-    "test": "karma start"
+    "test": "karma start",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -33,8 +35,6 @@
     "@types/jasmine": "^2.5.54",
     "@types/node": "7.0.8",
     "@types/object-assign": "4.0.30",
-    "@types/react": "15.0.21",
-    "@types/react-dom": "0.14.23",
     "jasmine-core": "^2.8.0",
     "karma": "1.5.0",
     "karma-chrome-launcher": "2.0.0",

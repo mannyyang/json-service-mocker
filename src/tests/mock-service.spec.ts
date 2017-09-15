@@ -58,7 +58,7 @@ const serviceMocks: any = function (): any[] {
             'path': '/post/reqbody',
             'status': 200,
             'body': function (req: any): any {
-                return JSON.parse(req.body());
+                return req._body;
             },
             'timeout': '',
             'header': ''
@@ -123,19 +123,25 @@ const serviceMocks2: any = function (): any[] {
 
 const headers: any = { 'Accept': 'application/json' };
 const options: any = {
-    dataType: 'json'
-    // responseType: 'json'
+    dataType: 'json',
+    responseType: 'json'
     // headers: headers
 };
 
-function responseParser(res: any): JSON {
-    return JSON.parse(res.response);
+// private functions
+function responseParser(response: any): JSON {
+    if (typeof response.response === 'object') {
+        return response.response;
+    } else {
+        return JSON.parse(response.response);
+    }
 }
 
 describe('Test Mocking Service', () => {
 
     beforeAll(() => {
-        const mockJS: any = new JSONServiceMocker(serviceMocks().concat(serviceMocks2()));
+        const mockJS: any = new JSONServiceMocker();
+        mockJS.init(serviceMocks().concat(serviceMocks2()));
     });
 
     it('should fetch a mocked url with a json object set in the body', (done: any) => {
@@ -164,12 +170,13 @@ describe('Test Mocking Service', () => {
     });
 
     it('should execute function each time service is called', (done: any) => {
-        qwest.get('/get/function/add', null, options).then((res: any) => {
-            const emptyArray: any = [1];
-            expect(responseParser(res)).toEqual(emptyArray);
+        qwest.get('/get/function/add', null, options)
+            .then((res: any) => {
+                const emptyArray: any = [1];
+                expect(responseParser(res)).toEqual(emptyArray);
 
-            return qwest.get('/get/function/add', null, options);
-        })
+                return qwest.get('/get/function/add', null, options);
+            })
             .then((res: any) => {
                 const secondFilled: any = [1, 1];
                 expect(responseParser(res)).toEqual(secondFilled);

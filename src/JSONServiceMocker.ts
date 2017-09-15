@@ -1,4 +1,4 @@
-import mock from 'xhr-mock';
+import mock = require('xhr-mock');
 
 export interface IMockService {
     method: string;
@@ -18,7 +18,6 @@ export class JSONServiceMocker {
             'Content-Type': 'application/json'
         };
 
-        mock.default = mock;
         mock.setup();
 
         // override original function so that it doesn't throw an error

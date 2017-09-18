@@ -58,7 +58,7 @@ const serviceMocks: any = function (): any[] {
             'path': '/post/reqbody',
             'status': 200,
             'body': function (req: any): any {
-                return req._body;
+                return req.requestBody;
             },
             'timeout': '',
             'header': ''

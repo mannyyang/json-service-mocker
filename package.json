@@ -29,7 +29,8 @@
   },
   "homepage": "https://github.com/mannyyang/json-service-mocker#readme",
   "dependencies": {
-    "xhr-mock": "^1.9.1"
+    "nise": "^1.0.1",
+    "text-encoding": "^0.6.4"
   },
   "devDependencies": {
     "@types/jasmine": "^2.5.54",

@@ -1,4 +1,6 @@
-import mock = require('xhr-mock');
+// import mock = require('xhr-mock');
+import { fakeServer, fakeXhr } from 'nise';
+
 
 export interface IMockService {
     method: string;
@@ -6,57 +8,78 @@ export interface IMockService {
     status: number;
     body: any;
     timeout: string | number;
-    header: object | string;
+    headers: object | string;
 }
 
 export class JSONServiceMocker {
     public defaultResHeaders: {};
+    
+    // private server: fakeServer;
 
     constructor() {
         this.defaultResHeaders = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         };
-
-        mock.setup();
-
-        // override original function so that it doesn't throw an error
-        mock.XMLHttpRequest.prototype.overrideMimeType = function (mime: any) : any {
-            // not implemented yet.
-        };
     }
 
-    public init(services: IMockService[]): void {
-        services.forEach((serviceMock: IMockService) => {
-            mock.mock(serviceMock.method, serviceMock.path, (req: any, res: any) => {
-                // init response object
-                let response: any = res.status(serviceMock.status);
+    public init(services: IMockService[]) {
+        const server = fakeServer.create({
+            autoRespond: true
+        });
 
-                response = serviceMock.hasOwnProperty('header')
-                    ? response.headers((<any>Object).assign({}, this.defaultResHeaders, serviceMock.header || {}))
-                    : response;
+        for (let i = 0; i < services.length; i++) {
+            let r = services[i];
+            let status = r.status || 200;
+            let headers = r.headers || {
+                "Content-Type": "application/json"
+            };
 
-                switch (typeof serviceMock.body) {
-                    case 'function':
-                        response = response.body(serviceMock.body(req));
-                        break;
+            server.respondWith(r.method, r.path, (req) => {
+                let body = r.body;
+
+                switch (typeof body) {
                     case 'object':
-                        response = response.body(serviceMock.body);
+                        body = JSON.stringify(body);
+                        break;
+                    case 'function':
+                        body = JSON.stringify(body(req));
                         break;
                     default:
                         break;
                 }
 
-                return response;
+                req.respond(status, headers, body);
             });
+        }
+        
+        fakeXhr.FakeXMLHttpRequest.useFilters = true;
+        fakeXhr.FakeXMLHttpRequest.addFilter(function (method, url, async, username, password) {
+            const windowLoc = typeof window !== "undefined" ? window.location : { protocol: null, host: null };
+            const rCurrLoc = new RegExp("^" + windowLoc.protocol + "//" + windowLoc.host);
+
+            if (!/^https?:\/\//.test(url) || rCurrLoc.test(url)) {
+                url = url.replace(rCurrLoc, "");
+            }
+
+            for (let l = server.responses.length, i = l - 1; i >= 0; i--) {
+                const response = server.responses[i];
+                const matchMethod = !response.method || response.method.toLowerCase() === method.toLowerCase();
+                const matchUrl = !response.url || response.url === url || (typeof response.url.test === "function" && response.url.test(url));
+
+                if (matchMethod && matchUrl) {
+                    return false;
+                }
+            }
+
+            return true;
         });
     }
-
     public enable(): void {
-        mock.setup();
+        //mock.setup();
     }
 
     public disable(): void {
-        mock.teardown();
+        //mock.teardown();
     }
 }

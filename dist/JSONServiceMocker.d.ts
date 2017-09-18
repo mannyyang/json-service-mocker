@@ -4,10 +4,11 @@ export interface IMockService {
     status: number;
     body: any;
     timeout: string | number;
-    header: object | string;
+    headers: object | string;
 }
 export declare class JSONServiceMocker {
     defaultResHeaders: {};
+    private server;
     constructor();
     init(services: IMockService[]): void;
     enable(): void;

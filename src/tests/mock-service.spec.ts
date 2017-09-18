@@ -19,7 +19,7 @@ const serviceMocks: any = function (): any[] {
                 }
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         },
         {
             'method': 'GET',
@@ -29,7 +29,7 @@ const serviceMocks: any = function (): any[] {
                 return state;
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         },
         {
             'method': 'GET',
@@ -41,7 +41,7 @@ const serviceMocks: any = function (): any[] {
                 return state;
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         },
         {
             'method': 'GET',
@@ -51,7 +51,7 @@ const serviceMocks: any = function (): any[] {
                 'test': 'test'
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         },
         {
             'method': 'POST',
@@ -61,7 +61,7 @@ const serviceMocks: any = function (): any[] {
                 return req.requestBody;
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         }
     ];
 };
@@ -84,7 +84,7 @@ const serviceMocks2: any = function (): any[] {
                 }
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         },
         {
             'method': 'GET',
@@ -94,7 +94,7 @@ const serviceMocks2: any = function (): any[] {
                 return state;
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         },
         {
             'method': 'GET',
@@ -106,7 +106,7 @@ const serviceMocks2: any = function (): any[] {
                 return state;
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         },
         {
             'method': 'POST',
@@ -116,7 +116,7 @@ const serviceMocks2: any = function (): any[] {
                 return JSON.parse(req.body());
             },
             'timeout': '',
-            'header': ''
+            'headers': ''
         }
     ];
 };
@@ -125,7 +125,6 @@ const headers: any = { 'Accept': 'application/json' };
 const options: any = {
     dataType: 'json',
     responseType: 'json'
-    // headers: headers
 };
 
 // private functions

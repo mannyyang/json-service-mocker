@@ -1,6 +1,4 @@
-// import mock = require('xhr-mock');
 import { fakeServer, fakeXhr } from 'nise';
-
 
 export interface IMockService {
     method: string;
@@ -8,35 +6,38 @@ export interface IMockService {
     status: number;
     body: any;
     timeout: string | number;
-    headers: object | string;
+    headers: object;
 }
 
 export class JSONServiceMocker {
     public defaultResHeaders: {};
-    
-    // private server: fakeServer;
+    public defaultOpts: {};
+    private server: fakeServer;
 
-    constructor() {
+    constructor(options?: any) {
         this.defaultResHeaders = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         };
+
+        this.defaultOpts = {
+            autoRespond: true
+        };
+
+        const mergedOpts: {} = (options && Object.keys(options).length)
+            ? Object.assign({}, this.defaultOpts, options)
+            : this.defaultOpts;
+
+        this.server = fakeServer.create(mergedOpts);
     }
 
-    public init(services: IMockService[]) {
-        const server = fakeServer.create({
-            autoRespond: true
-        });
+    public init(services: IMockService[]): void {
+        services.forEach((service: IMockService) => {
+            const status: number = service.status || 200;
+            const headers: {} = service.headers || this.defaultResHeaders;
 
-        for (let i = 0; i < services.length; i++) {
-            let r = services[i];
-            let status = r.status || 200;
-            let headers = r.headers || {
-                "Content-Type": "application/json"
-            };
-
-            server.respondWith(r.method, r.path, (req) => {
-                let body = r.body;
+            this.server.respondWith(service.method, service.path, (req: any) => {
+                let body: any = service.body;
 
                 switch (typeof body) {
                     case 'object':
@@ -51,29 +52,35 @@ export class JSONServiceMocker {
 
                 req.respond(status, headers, body);
             });
-        }
-        
-        fakeXhr.FakeXMLHttpRequest.useFilters = true;
-        fakeXhr.FakeXMLHttpRequest.addFilter(function (method, url, async, username, password) {
-            const windowLoc = typeof window !== "undefined" ? window.location : { protocol: null, host: null };
-            const rCurrLoc = new RegExp("^" + windowLoc.protocol + "//" + windowLoc.host);
-
-            if (!/^https?:\/\//.test(url) || rCurrLoc.test(url)) {
-                url = url.replace(rCurrLoc, "");
-            }
-
-            for (let l = server.responses.length, i = l - 1; i >= 0; i--) {
-                const response = server.responses[i];
-                const matchMethod = !response.method || response.method.toLowerCase() === method.toLowerCase();
-                const matchUrl = !response.url || response.url === url || (typeof response.url.test === "function" && response.url.test(url));
-
-                if (matchMethod && matchUrl) {
-                    return false;
-                }
-            }
-
-            return true;
         });
+
+        fakeXhr.FakeXMLHttpRequest.useFilters = true;
+        fakeXhr.FakeXMLHttpRequest.addFilter(
+            (method: string, url: string, async: boolean, username: string, password: string): boolean => {
+                const windowLoc : any = typeof window !== 'undefined' ? window.location : { protocol: null, host: null };
+                const rCurrLoc : any = new RegExp(`^${windowLoc.protocol}//${windowLoc.host}`);
+
+                if (!/^https?:\/\//.test(url) || rCurrLoc.test(url)) {
+                    url = url.replace(rCurrLoc, '');
+                }
+
+                const currLength : number = this.server.responses.length;
+                for (let i : number = currLength - 1; i >= 0; i--) {
+                    const response : any = this.server.responses[i];
+                    const matchMethod: boolean = !response.method
+                        || response.method.toLowerCase() === method.toLowerCase();
+                    const matchUrl: string = !response.url
+                        || response.url === url
+                        || (typeof response.url.test === 'function' && response.url.test(url));
+
+                    if (matchMethod && matchUrl) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        );
     }
     public enable(): void {
         //mock.setup();

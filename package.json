@@ -1,6 +1,6 @@
 {
   "name": "json-service-mocker",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A client-side XHR mocker specifically for mocking JSON data from an API. It replaces the global XMLHttpRequest with MockXMLHttpRequest.",
   "main": "dist/JSONServiceMocker.js",
   "typings": "dist/JSONServiceMocker.d.ts",

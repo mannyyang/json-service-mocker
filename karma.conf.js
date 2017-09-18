@@ -36,7 +36,7 @@ module.exports = function (config) {
 				'src/JSONServiceMocker.ts', 
 				'src/tests/**/*.ts'
 			],
-			"compilerOptions": {
+			compilerOptions: {
 				"lib": ["dom", "es6"]
 			}
 		},

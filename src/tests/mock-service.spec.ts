@@ -18,7 +18,6 @@ const serviceMocks: any = function (): any[] {
                     'name': 'me'
                 }
             },
-            'timeout': '',
             'headers': ''
         },
         {
@@ -28,7 +27,6 @@ const serviceMocks: any = function (): any[] {
             'body': function (): any {
                 return state;
             },
-            'timeout': '',
             'headers': ''
         },
         {
@@ -40,7 +38,6 @@ const serviceMocks: any = function (): any[] {
 
                 return state;
             },
-            'timeout': '',
             'headers': ''
         },
         {
@@ -50,7 +47,6 @@ const serviceMocks: any = function (): any[] {
             'body': {
                 'test': 'test'
             },
-            'timeout': '',
             'headers': ''
         },
         {
@@ -60,7 +56,6 @@ const serviceMocks: any = function (): any[] {
             'body': function (req: any): any {
                 return req.requestBody;
             },
-            'timeout': '',
             'headers': ''
         }
     ];
@@ -83,7 +78,6 @@ const serviceMocks2: any = function (): any[] {
                     'name': 'me'
                 }
             },
-            'timeout': '',
             'headers': ''
         },
         {
@@ -93,7 +87,6 @@ const serviceMocks2: any = function (): any[] {
             'body': function (): any {
                 return state;
             },
-            'timeout': '',
             'headers': ''
         },
         {
@@ -105,7 +98,6 @@ const serviceMocks2: any = function (): any[] {
 
                 return state;
             },
-            'timeout': '',
             'headers': ''
         },
         {
@@ -115,7 +107,6 @@ const serviceMocks2: any = function (): any[] {
             'body': function (req: any): any {
                 return JSON.parse(req.body());
             },
-            'timeout': '',
             'headers': ''
         }
     ];
@@ -136,11 +127,12 @@ function responseParser(response: any): JSON {
     }
 }
 
+let mockJS: any;
+
 describe('Test Mocking Service', () => {
 
     beforeAll(() => {
-        const mockJS: any = new JSONServiceMocker();
-        mockJS.init(serviceMocks().concat(serviceMocks2()));
+        mockJS = new JSONServiceMocker(serviceMocks().concat(serviceMocks2()));
     });
 
     it('should fetch a mocked url with a json object set in the body', (done: any) => {
@@ -233,6 +225,33 @@ describe('Test Mocking Service', () => {
                 expect(responseParser(res)).toEqual(secondFilled);
                 done();
             });
+    });
+
+    it('should be disabled', (done: any) => {
+        mockJS.disable();
+        qwest.get('/get/json', null, options)
+            .catch((err: any) => {
+                expect(err).toBeDefined();
+                done();
+            });
+    });
+
+    it('should get enabled', (done: any) => {
+        mockJS.enable();
+        qwest.get('/get/json', null, options).then((res: any) => {
+            const expected: any = {
+                'item': {
+                    'name': 'me',
+                    'age': 2
+                },
+                'secondItem': {
+                    'name': 'me'
+                }
+            };
+
+            expect(responseParser(res)).toEqual(expected);
+            done();
+        });
     });
 
 });

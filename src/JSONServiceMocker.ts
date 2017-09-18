@@ -1,40 +1,71 @@
 import { fakeServer, fakeXhr } from 'nise';
 
+/**
+ * Single Mock Service Interface
+ */
 export interface IMockService {
     method: string;
-    path: string;
+    path: string | RegExp;
     status: number;
     body: any;
-    timeout: string | number;
+    timeout?: string | number;
     headers: object;
 }
-
+/**
+ * JSON Service Mocker
+ */
 export class JSONServiceMocker {
     public defaultResHeaders: {};
-    public defaultOpts: {};
+    public defaultOpts: {
+        autoRespond?: boolean;
+        autoRespondAfter?: number;
+    };
+    public mockServices: IMockService[];
     private server: fakeServer;
 
-    constructor(options?: any) {
+    constructor(services: IMockService[], options?: any) {
+        // Keep track of desired services.
+        this.mockServices = services;
+
+        // Default mocked response headers (what the API service should contain in its headers).
         this.defaultResHeaders = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         };
 
+        // Default options - same options that are used in nise's fakeServer.
+        // https://github.com/sinonjs/nise#options
         this.defaultOpts = {
-            autoRespond: true
+            autoRespond: true,
+            autoRespondAfter: 10
         };
 
+        // Merge options provided by argument to default options.
         const mergedOpts: {} = (options && Object.keys(options).length)
             ? Object.assign({}, this.defaultOpts, options)
             : this.defaultOpts;
 
+        // Create new fake server.
         this.server = fakeServer.create(mergedOpts);
+
+        this.setUp();
+        this.setFilters();
     }
 
-    public init(services: IMockService[]): void {
-        services.forEach((service: IMockService) => {
+    public enable(): void {
+        this.setUp();
+    }
+
+    public disable(): void {
+        this.server.reset();
+    }
+
+    private setUp(): void {
+        // Iterate through each service provided, and create the mock data
+        // for each method/path combo.
+        this.mockServices.forEach((service: IMockService) => {
             const status: number = service.status || 200;
-            const headers: {} = service.headers || this.defaultResHeaders;
+            const headers: {} = Object.assign({}, this.defaultResHeaders, service.headers);
 
             this.server.respondWith(service.method, service.path, (req: any) => {
                 let body: any = service.body;
@@ -53,40 +84,44 @@ export class JSONServiceMocker {
                 req.respond(status, headers, body);
             });
         });
+    }
 
+    private setFilters(): void {
+        // Add a filter so that it doesn't fake any service calls that aren't
+        // in the given mocked services list.
         fakeXhr.FakeXMLHttpRequest.useFilters = true;
         fakeXhr.FakeXMLHttpRequest.addFilter(
-            (method: string, url: string, async: boolean, username: string, password: string): boolean => {
-                const windowLoc : any = typeof window !== 'undefined' ? window.location : { protocol: null, host: null };
-                const rCurrLoc : any = new RegExp(`^${windowLoc.protocol}//${windowLoc.host}`);
+            (method: string, path: string, async: boolean, username: string, password: string): boolean => {
+                return !this.mockServices.some((service: IMockService) => {
+                    // // if window doesn't exist, create a window location object. (why?)
+                    // const windowLoc: any = typeof window !== 'undefined'
+                    //     ? window.location
+                    //     : { protocol: null, host: null };
 
-                if (!/^https?:\/\//.test(url) || rCurrLoc.test(url)) {
-                    url = url.replace(rCurrLoc, '');
-                }
+                    // // create regex string that has the current host in location bar
+                    // const rCurrLoc: any = new RegExp(`^${windowLoc.protocol}//${windowLoc.host}`);
 
-                const currLength : number = this.server.responses.length;
-                for (let i : number = currLength - 1; i >= 0; i--) {
-                    const response : any = this.server.responses[i];
-                    const matchMethod: boolean = !response.method
-                        || response.method.toLowerCase() === method.toLowerCase();
-                    const matchUrl: string = !response.url
-                        || response.url === url
-                        || (typeof response.url.test === 'function' && response.url.test(url));
+                    // // if service url doesn't have 'http://' or 'https://' or
+                    // // it doesn't have the current url
+                    // if (!/^https?:\/\//.test(path) || rCurrLoc.test(path)) {
 
-                    if (matchMethod && matchUrl) {
-                        return false;
-                    }
-                }
+                    //     path = path.replace(rCurrLoc, '');
+                    // }
 
-                return true;
+                    // Check if methods match. Ex. GET, POST, PUT, etc.
+                    const matchMethod: boolean = service.method
+                        && service.method.toLowerCase() === method.toLowerCase();
+
+                    // Check if paths match.
+                    const matchPath: boolean = service.path
+                        && (
+                            service.path === path
+                            || (service.path instanceof RegExp && service.path.test(path))
+                        );
+
+                    return matchMethod && matchPath;
+                });
             }
         );
-    }
-    public enable(): void {
-        //mock.setup();
-    }
-
-    public disable(): void {
-        //mock.teardown();
     }
 }
